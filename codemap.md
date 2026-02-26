@@ -2,7 +2,7 @@
 
 ## Objective
 
-Add Firefox + Windows-friendly export behavior and document setup/fork workflow.
+Maintain Firefox + Windows-friendly export behavior and provide a clear setup guide for fork-first usage.
 
 ## Primary Files
 
@@ -11,8 +11,8 @@ Add Firefox + Windows-friendly export behavior and document setup/fork workflow.
   - Core utility methods live in `Utils`.
   - Export flow calls `Utils.downloadFile(...)`.
 - `README.md`
-  - Installation and usage documentation.
-  - Now includes Firefox + Windows setup and fork-first workflow notes.
+  - Lean setup documentation.
+  - Includes quick setup, fork workflow, troubleshooting, and restored legacy version notes (`v2.7.0`, `v2.6.0`, `v2.5.0`).
 
 ## Recent Changes
 
@@ -23,8 +23,12 @@ Add Firefox + Windows-friendly export behavior and document setup/fork workflow.
   - Fall back to anchor download if `GM_download` is not available.
   - Use normalized Windows-safe filenames in both paths.
 - Added README sections:
-  - `Firefox + Windows setup (recommended)`
-  - `Fork-first workflow (no pull request)`
+  - `Quick Setup (Firefox + Windows)`
+  - `Setup From Source`
+  - `Fork Workflow (No PR)`
+  - `What's New (Legacy Notes)`
+  - `Export Format`
+  - `Troubleshooting`
 
 ## Removal Log
 
