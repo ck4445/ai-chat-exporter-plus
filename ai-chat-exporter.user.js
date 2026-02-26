@@ -2,7 +2,7 @@
 // @name         ChatGPT / Claude / Copilot / Gemini AI Chat Exporter by RevivalStack
 // @namespace    https://github.com/revivalstack/chatgpt-exporter
 // @version      2.7.1
-// @description  Export your ChatGPT, Claude, Copilot or Gemini chat into a properly and elegantly formatted Markdown or JSON.
+// @description  Export your ChatGPT, Claude, Copilot or Gemini chat into JSONL.
 // @author       Mic Mejia (Refactored by Google Gemini)
 // @homepage     https://github.com/micmejia
 // @license      MIT License
@@ -11,8 +11,6 @@
 // @match        https://claude.ai/*
 // @match        https://copilot.microsoft.com/*
 // @match        https://gemini.google.com/*
-// @grant        GM_getValue
-// @grant        GM_setValue
 // @grant        GM_download
 // ==/UserScript==
 
@@ -31,8 +29,9 @@
   const OUTLINE_COLLAPSED_STATE_KEY = "outline_is_collapsed"; // Local Storage key for collapsed state
   const AUTOSCROLL_INITIAL_DELAY = 2000; // Initial delay before starting auto-scroll (X seconds)
   const OUTLINE_TITLE_ID = "ai-chat-exporter-outline-title";
-  const OUTPUT_FILE_FORMAT_DEFAULT = "{platform}_{title}_{timestampLocal}";
-  const GM_OUTPUT_FILE_FORMAT = "aiChatExporter_fileFormat";
+  const FIXED_EXPORT_FILENAME = "userdata.jsonl";
+  const EXPORT_DISCLAIMER_MESSAGE =
+    "WARNING: Do not open-source or share this export unless you already checked there is NO sensitive data and NO illegal material. Continue export?";
 
   // --- Font Stack for UI Elements ---
   const FONT_STACK = `system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"`;
@@ -161,10 +160,6 @@
     border: "none",
     cursor: "pointer",
     borderRadius: "8px",
-  };
-
-  const BUTTON_SPACING_PROPS = {
-    marginLeft: "8px",
   };
 
   // --- Alert Styles ---
@@ -345,26 +340,6 @@
   // --- Utility Functions ---
   const Utils = {
     /**
-     * Converts a string into a URL-friendly slug.
-     * @param {string} str The input text.
-     * @returns {string} The slugified string.
-     */
-    slugify(str, toLowerCase = true, maxLength = 120) {
-      if (typeof str !== "string") {
-        return "invalid-filename"; // Handle non-string input gracefully
-      }
-      if (toLowerCase) {
-        str = str.toLocaleLowerCase();
-      }
-      return str
-        .replace(/[^a-zA-Z0-9\-_.+]+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "")
-        .replace(/^$/, "invalid-filename")
-        .slice(0, maxLength);
-    },
-
-    /**
      * Makes a filename safe for Windows.
      * @param {string} name Input filename.
      * @returns {string} Windows-safe filename.
@@ -464,49 +439,6 @@
       for (const prop in styles) {
         element.style[prop] = styles[prop];
       }
-    },
-
-    /**
-     * Formats a filename string based on provided format and chat data.
-     *
-     * @param {string} format - The format string with placeholders (e.g., "{platform}_{tag1}_{title}_{timestamp}.md").
-     * @param {string} title - The cleaned title of the chat.
-     * @param {string[]} tags - An array of tags for the chat.
-     * @param {string} ext - The file extenstion without leading dot.
-     * @returns {string} The formatted filename.
-     */
-    formatFileName(format, title, tags, ext) {
-      // Ensure tags is an array
-      const tagsArray = Array.isArray(tags) ? tags : [];
-
-      const replacements = {
-        "{exporter}": EXPORTER_VERSION,
-        "{platform}": CURRENT_PLATFORM,
-        "{title}": title.slice(0, 70).toLocaleLowerCase(),
-        "{timestamp}": new Date().toISOString(),
-        "{timestampLocal}": Utils.formatLocalTime(new Date()),
-        "{tags}": tagsArray.join("-").toLocaleLowerCase(), // Comma separated string of all tags
-      };
-
-      // Add individual tags (tag1 to tag9)
-      for (let i = 0; i < 9; i++) {
-        const tagName = `{tag${i + 1}}`;
-        replacements[tagName] = tagsArray[i]
-          ? tagsArray[i].toLocaleLowerCase()
-          : ""; // Use tag if it exists, otherwise empty string
-      }
-
-      let formattedFilename = format;
-      for (const placeholder in replacements) {
-        if (replacements.hasOwnProperty(placeholder)) {
-          // Replace all occurrences of the placeholder with its value
-          formattedFilename = formattedFilename
-            .split(placeholder)
-            .join(replacements[placeholder]);
-        }
-      }
-
-      return Utils.slugify(`${formattedFilename}.${ext}`, false);
     },
 
     /**
@@ -886,78 +818,12 @@
     },
 
     /**
-     * Converts standardized chat data to Markdown format.
-     * This function now expects a pre-filtered `chatData`.
+     * Converts standardized chat data to JSONL format (one JSON object per line).
      * @param {object} chatData - The standardized chat data (already filtered).
      * @param {TurndownService} turndownServiceInstance - Configured TurndownService.
-     * @returns {{output: string, fileName: string}} Markdown string and filename.
+     * @returns {{output: string, fileName: string}} JSONL string and fixed filename.
      */
-    formatToMarkdown(chatData, turndownServiceInstance) {
-      let toc = "";
-      let content = "";
-      let exportChatIndex = 0; // Initialize to 0 for sequential user message numbering
-
-      chatData.messages.forEach((msg) => {
-        if (msg.author === "user") {
-          exportChatIndex++; // Increment only for user messages
-          const preview = Utils.truncate(
-            msg.contentText.replace(/\s+/g, " "),
-            70
-          );
-          toc += `- [${exportChatIndex}: ${Utils.escapeMd(
-            preview
-          )}](#chat-${exportChatIndex})\n`;
-          content +=
-            `### chat-${exportChatIndex}\n\n> ` +
-            msg.contentText.replace(/\n/g, "\n> ") +
-            "\n\n";
-        } else {
-          let markdownContent;
-          try {
-            markdownContent = turndownServiceInstance.turndown(msg.contentHtml);
-          } catch (e) {
-            console.error(
-              `Error converting AI message ${msg.id} to Markdown:`,
-              e
-            );
-            markdownContent = `[CONVERSION ERROR: Failed to render this section. Original content below]\n\n\`\`\`\n${msg.contentText}\n\`\`\`\n`;
-          }
-          content += markdownContent + "\n\n" + MARKDOWN_BACK_TO_TOP_LINK;
-        }
-        // Removed the incorrect increment logic from here
-      });
-
-      const localTime = Utils.formatLocalTime(chatData.exportedAt);
-
-      const yaml = `---\ntitle: ${chatData.title}\ntags: [${chatData.tags.join(
-        ", "
-      )}]\nauthor: ${chatData.author}\ncount: ${
-        chatData.messageCount
-      }\nexporter: ${EXPORTER_VERSION}\ndate: ${localTime}\nurl: ${
-        chatData.threadUrl
-      }\n---\n`;
-      const tocBlock = `## Table of Contents\n\n${toc.trim()}\n\n`;
-
-      const finalOutput =
-        yaml + `\n# ${chatData.title}\n\n` + tocBlock + content.trim() + "\n\n";
-
-      const fileName = Utils.formatFileName(
-        GM_getValue(GM_OUTPUT_FILE_FORMAT, OUTPUT_FILE_FORMAT_DEFAULT),
-        chatData.title,
-        chatData.tags,
-        "md"
-      );
-      return { output: finalOutput, fileName: fileName };
-    },
-
-    /**
-     * Converts standardized chat data to JSON format.
-     * This function now expects a pre-filtered `chatData`.
-     * @param {object} chatData - The standardized chat data (already filtered).
-     * @param {TurndownService} turndownServiceInstance - Configured TurndownService.
-     * @returns {{output: string, fileName: string}} JSON string and filename.
-     */
-    formatToJSON(chatData, turndownServiceInstance) {
+    formatToJSONL(chatData, turndownServiceInstance) {
       const processMessageContent = function (msg) {
         if (msg.author === "user") {
           return msg.contentText;
@@ -975,32 +841,28 @@
           return markdownContent;
         }
       };
-      const jsonOutput = {
-        title: chatData.title,
-        tags: chatData.tags,
-        author: chatData.author,
-        count: chatData.messageCount,
-        exporter: EXPORTER_VERSION,
-        date: chatData.exportedAt.toISOString(),
-        url: chatData.threadUrl,
-        messages: chatData.messages.map((msg) => ({
-          id: msg.id.split("-").slice(0, 2).join("-"), // Keep the ID for reference in JSON
+      const exportedAt = chatData.exportedAt.toISOString();
+      const records = chatData.messages.map((msg, index) => ({
+        schema: "ai-chat-exporter-plus.v1",
+        source: {
+          platform: chatData.author,
+          title: chatData.title,
+          tags: chatData.tags,
+          threadUrl: chatData.threadUrl,
+          exportedAt: exportedAt,
+          exporter: EXPORTER_VERSION,
+          messageCount: chatData.messageCount,
+        },
+        message: {
+          sequence: index + 1,
+          id: msg.id,
           author: msg.author,
           content: processMessageContent(msg),
-        })),
-      };
+        },
+      }));
 
-      const fileName = Utils.formatFileName(
-        GM_getValue(GM_OUTPUT_FILE_FORMAT, OUTPUT_FILE_FORMAT_DEFAULT),
-        chatData.title,
-        chatData.tags,
-        "json"
-      );
-
-      return {
-        output: JSON.stringify(jsonOutput, null, 2),
-        fileName: fileName,
-      };
+      const jsonlOutput = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
+      return { output: jsonlOutput, fileName: FIXED_EXPORT_FILENAME };
     },
 
     /**
@@ -1415,9 +1277,8 @@
     /**
      * Main export orchestrator. Extracts data, configures Turndown, and formats.
      * This function now filters messages based on _selectedMessageIds and visibility.
-     * @param {string} format - The desired output format ('markdown' or 'json').
      */
-    initiateExport(format) {
+    initiateExport() {
       // Use the _currentChatData that matches the outline's IDs
       const rawChatData = ChatExporter._currentChatData;
       let turndownServiceInstance = null;
@@ -1494,6 +1355,9 @@
         );
         return;
       }
+      if (!window.confirm(EXPORT_DISCLAIMER_MESSAGE)) {
+        return;
+      }
 
       // Create a new chatData object for the filtered export
       // Also, re-calculate messageCount for the filtered set
@@ -1512,28 +1376,13 @@
       turndownServiceInstance = new TurndownService();
       ChatExporter.setupTurndownRules(turndownServiceInstance);
 
-      if (format === "markdown") {
-        // Pass the filtered chat data to formatToMarkdown
-        const markdownResult = ChatExporter.formatToMarkdown(
-          chatDataForExport,
-          turndownServiceInstance
-        );
-        fileOutput = markdownResult.output;
-        fileName = markdownResult.fileName;
-        mimeType = "text/markdown;charset=utf-8";
-      } else if (format === "json") {
-        // Pass the filtered chat data to formatToJSON
-        const jsonResult = ChatExporter.formatToJSON(
-          chatDataForExport,
-          turndownServiceInstance
-        );
-        fileOutput = jsonResult.output;
-        fileName = jsonResult.fileName;
-        mimeType = "application/json;charset=utf-8";
-      } else {
-        alert("Invalid export format selected.");
-        return;
-      }
+      const jsonlResult = ChatExporter.formatToJSONL(
+        chatDataForExport,
+        turndownServiceInstance
+      );
+      fileOutput = jsonlResult.output;
+      fileName = jsonlResult.fileName;
+      mimeType = "application/x-ndjson;charset=utf-8";
 
       if (fileOutput && fileName) {
         Utils.downloadFile(fileName, fileOutput, mimeType);
@@ -1653,73 +1502,13 @@
       container.id = EXPORT_CONTAINER_ID;
       Utils.applyStyles(container, COMMON_CONTROL_PROPS);
 
-      const markdownButton = document.createElement("button");
-      markdownButton.id = "export-markdown-btn";
-      markdownButton.textContent = "⬇ Export MD";
-      markdownButton.title = `${EXPORT_BUTTON_TITLE_PREFIX}: Export to Markdown`;
-      Utils.applyStyles(markdownButton, BUTTON_BASE_PROPS);
-      markdownButton.onclick = () => ChatExporter.initiateExport("markdown");
-      container.appendChild(markdownButton);
-
-      const jsonButton = document.createElement("button");
-      jsonButton.id = "export-json-btn";
-      jsonButton.textContent = "⬇ JSON";
-      jsonButton.title = `${EXPORT_BUTTON_TITLE_PREFIX}: Export to JSON`;
-      Utils.applyStyles(jsonButton, {
-        ...BUTTON_BASE_PROPS,
-        ...BUTTON_SPACING_PROPS,
-      });
-      jsonButton.onclick = () => ChatExporter.initiateExport("json");
-      container.appendChild(jsonButton);
-
-      // --- Settings Button (NEW) ---
-      const settingsButton = document.createElement("button");
-      settingsButton.className = "export-button-settings";
-      settingsButton.textContent = "⚙️";
-      settingsButton.title = `${EXPORT_BUTTON_TITLE_PREFIX}: ⚙️ Settings: Configure Filename Format`;
-      Utils.applyStyles(settingsButton, {
-        ...BUTTON_BASE_PROPS,
-        ...BUTTON_SPACING_PROPS,
-      });
-      settingsButton.addEventListener("click", () => {
-        const currentFormat = GM_getValue(
-          GM_OUTPUT_FILE_FORMAT,
-          OUTPUT_FILE_FORMAT_DEFAULT
-        );
-        const newFormat = window.prompt(
-          `+++++++  ${EXPORT_BUTTON_TITLE_PREFIX}  +++++++\n\n ` +
-            `ENTER NEW FILENAME FORMAT:\n` +
-            ` • sample1: {platform}__{tag1}__{title}__{timestampLocal}\n` +
-            ` • sample2: {tag1}__{title}-v{exporter}-{timestamp}\n` +
-            ` • current: ${currentFormat}\n\n` +
-            `valid placeholders: \n  ` +
-            `- {platform}              : e.g. chatgpt, gemini\n  ` +
-            `- {title}                      : title, with tags removed\n  ` +
-            `- {timestamp}          : YYYY-MM-DDTHH-mm-ss.sssZ\n  ` +
-            `- {timestampLocal}: YYYY-MM-DDTHH-mm-ss[+/-]HHMM\n  ` +
-            `- {tags}                     : all tags, hyphen-separated\n  ` +
-            `- {tag1}                     : 1st tag\n  ` +
-            `- {tag2}                     : 2nd tag\n  ` +
-            `  ...\n  ` +
-            `- {tag9}                     : 9th tag\n  ` +
-            `- {exporter}             : AI Chat Exporter version\n`,
-          currentFormat
-        );
-
-        if (newFormat !== null && newFormat !== currentFormat) {
-          GM_setValue(GM_OUTPUT_FILE_FORMAT, newFormat);
-          alert("Filename format updated successfully!");
-          console.log("New filename format saved:", newFormat);
-        } else if (newFormat === currentFormat) {
-          // User clicked OK but didn't change the value, or entered same value
-          console.log("Filename format not changed.");
-        } else {
-          // User clicked Cancel
-          console.log("Filename format update cancelled.");
-        }
-      });
-      container.appendChild(settingsButton);
-      // --- End Settings Button ---
+      const jsonlButton = document.createElement("button");
+      jsonlButton.id = "export-jsonl-btn";
+      jsonlButton.textContent = "⬇ Export userdata.jsonl";
+      jsonlButton.title = `${EXPORT_BUTTON_TITLE_PREFIX}: Export JSONL`;
+      Utils.applyStyles(jsonlButton, BUTTON_BASE_PROPS);
+      jsonlButton.onclick = () => ChatExporter.initiateExport();
+      container.appendChild(jsonlButton);
 
       document.body.appendChild(container);
     },

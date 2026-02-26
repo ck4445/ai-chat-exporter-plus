@@ -1,72 +1,37 @@
 # AI Chat Exporter Plus
 
-This script saves chats from ChatGPT, Claude, Copilot, and Gemini as Markdown (`.md`) or JSON (`.json`).
+This fork exports chats to one format only:
+- `userdata.jsonl`
 
-## 1) What to click (easy install)
+No Markdown export. No alternate export types.
 
-1. Install Firefox.
-2. Install Tampermonkey:
+## Important Safety Warning (shown every export)
+
+Before each export, the script shows this warning:
+
+`WARNING: Do not open-source or share this export unless you already checked there is NO sensitive data and NO illegal material.`
+
+## Install (Firefox + Tampermonkey)
+
+1. Install Tampermonkey:
 https://addons.mozilla.org/firefox/addon/tampermonkey
-3. Click this link to install the script:
+2. Install script:
 https://raw.githubusercontent.com/ck4445/ai-chat-exporter-plus/main/ai-chat-exporter.user.js
-4. Tampermonkey opens. Click **Install**.
 
-## 2) How to use it
+## Use
 
-1. Open one chat page:
-   - https://chatgpt.com
-   - https://claude.ai
-   - https://copilot.microsoft.com
-   - https://gemini.google.com
-2. Refresh once.
-3. Bottom-right, click:
-   - **Export MD** for Markdown
-   - **JSON** for JSON
-4. Save the file.
+1. Open a chat page on ChatGPT, Claude, Copilot, or Gemini.
+2. Click `Export userdata.jsonl`.
+3. Read the warning and confirm.
+4. File downloads as `userdata.jsonl`.
 
-## 3) If it does not work
+## Output schema
 
-- No buttons:
-  - Make sure Tampermonkey is enabled.
-  - Refresh the page.
-- No download:
-  - Check browser download settings.
-  - Allow Tampermonkey download permissions.
+One JSON object per line (`.jsonl`).
 
-## 4) Update later
-
-1. Open Tampermonkey dashboard.
-2. Click **Check for userscript updates**.
-3. Update this script.
-
-## 5) Package as Firefox/Chrome extension (no Tampermonkey)
-
-Run:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\extension\build-extension.ps1 -Target all
-```
-
-Then load:
-- Firefox: `about:debugging#/runtime/this-firefox` -> **Load Temporary Add-on** -> `extension/dist/firefox/manifest.json`
-- Chrome: `chrome://extensions` -> **Developer mode** -> **Load unpacked** -> `extension/dist/chrome`
-
-## 6) For your fork workflow (no PR)
-
-Your fork:
-https://github.com/ck4445/ai-chat-exporter-plus
-
-Upstream:
-https://github.com/revivalstack/ai-chat-exporter
-
-Basic commands:
-
-```bash
-git add .
-git commit -m "your message"
-git push
-```
+Schema/config file:
+- `compliation.json`
 
 ## License
 
-MIT license. You can fork and modify. Keep the license notice.
+MIT. Keep license notice when sharing code.
