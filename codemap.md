@@ -13,6 +13,16 @@ Maintain Firefox + Windows-friendly export behavior and provide a clear setup gu
 - `README.md`
   - Very basic setup documentation.
   - Plain step-by-step install/use/troubleshooting/update instructions for non-technical users.
+- `extension/build-extension.ps1`
+  - Builds extension packages from the userscript into `extension/dist/firefox` and `extension/dist/chrome`.
+- `extension/content-shim.js`
+  - Defines `GM_getValue`, `GM_setValue`, and `GM_download` compatibility shims for extension mode.
+- `extension/manifest.firefox.json`
+  - Firefox MV3 manifest template.
+- `extension/manifest.chrome.json`
+  - Chrome MV3 manifest template.
+- `extension/README.md`
+  - Minimal extension build/load instructions.
 
 ## Recent Changes
 
@@ -22,13 +32,11 @@ Maintain Firefox + Windows-friendly export behavior and provide a clear setup gu
   - Prefer `GM_download` when available (better Firefox/Tampermonkey behavior).
   - Fall back to anchor download if `GM_download` is not available.
   - Use normalized Windows-safe filenames in both paths.
-- Added README sections:
-  - `Quick Setup (Firefox + Windows)`
-  - `Setup From Source`
-  - `Fork Workflow (No PR)`
-  - `What's New (Legacy Notes)`
-  - `Export Format`
-  - `Troubleshooting`
+- Added extension packaging pipeline:
+  - Build script for Firefox/Chrome output folders.
+  - Browser-specific manifest templates.
+  - Compatibility shim so the userscript runs in extension mode.
+  - Main README section linking to extension packaging flow.
 
 ## Removal Log
 

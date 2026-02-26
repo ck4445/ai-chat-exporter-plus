@@ -39,7 +39,19 @@ https://raw.githubusercontent.com/ck4445/ai-chat-exporter-plus/main/ai-chat-expo
 2. Click **Check for userscript updates**.
 3. Update this script.
 
-## 5) For your fork workflow (no PR)
+## 5) Package as Firefox/Chrome extension (no Tampermonkey)
+
+Run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\extension\build-extension.ps1 -Target all
+```
+
+Then load:
+- Firefox: `about:debugging#/runtime/this-firefox` -> **Load Temporary Add-on** -> `extension/dist/firefox/manifest.json`
+- Chrome: `chrome://extensions` -> **Developer mode** -> **Load unpacked** -> `extension/dist/chrome`
+
+## 6) For your fork workflow (no PR)
 
 Your fork:
 https://github.com/ck4445/ai-chat-exporter-plus
