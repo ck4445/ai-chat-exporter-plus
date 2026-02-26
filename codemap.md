@@ -13,6 +13,7 @@ Maintain Firefox + Windows-friendly export behavior and provide a clear setup gu
 - `README.md`
   - Lean setup documentation.
   - Includes quick setup, fork workflow, troubleshooting, and restored legacy version notes (`v2.7.0`, `v2.6.0`, `v2.5.0`).
+  - Includes clickable links for fork, upstream, install URL, changelog, references, and license.
 
 ## Recent Changes
 
