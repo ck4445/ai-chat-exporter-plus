@@ -1,8 +1,14 @@
 {
   "manifest_version": 3,
   "name": "AI Chat Exporter Plus",
-  "description": "Export ChatGPT, Claude, Copilot, and Gemini chats as Markdown or JSON.",
+  "description": "Export ChatGPT, Claude, Copilot, and Gemini chats as JSONL.",
   "version": "2.7.1",
+  "permissions": [
+    "downloads"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [

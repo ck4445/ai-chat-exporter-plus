@@ -44,6 +44,7 @@ foreach ($t in $targets) {
 
   Copy-Item $manifestSrc (Join-Path $outDir "manifest.json")
   Set-Content -Path (Join-Path $outDir "content-script.js") -Value $bundle -Encoding UTF8
+  Copy-Item (Join-Path $PSScriptRoot "background.js") (Join-Path $outDir "background.js")
   Copy-Item (Join-Path $repoRoot "LICENSE") (Join-Path $outDir "LICENSE")
 
   Write-Host "Built extension package:" $outDir

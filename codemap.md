@@ -12,12 +12,15 @@ Enforce a single export path: JSONL only, fixed filename `userdata.jsonl`, and m
   - Export flow calls `Utils.downloadFile(...)` with JSONL output only.
 - `README.md`
   - Basic setup documentation for JSONL-only behavior.
+  - Includes Firefox and Chrome setup paths.
 - `compliation.json`
   - Export format/config reference (`userdata.jsonl`, disclaimer policy, line schema).
 - `extension/build-extension.ps1`
   - Builds extension packages from the userscript into `extension/dist/firefox` and `extension/dist/chrome`.
 - `extension/content-shim.js`
-  - Defines compatibility shims for extension mode.
+  - Defines compatibility shims for extension mode and routes download requests to extension background worker when available.
+- `extension/background.js`
+  - Handles `AI_CHAT_EXPORTER_DOWNLOAD` messages and saves files via browser `downloads` API.
 - `extension/manifest.firefox.json`
   - Firefox MV3 manifest template.
 - `extension/manifest.chrome.json`
@@ -33,6 +36,7 @@ Enforce a single export path: JSONL only, fixed filename `userdata.jsonl`, and m
 - Removed Markdown export button and generic JSON export option.
 - Removed filename-format settings UI.
 - Added `compliation.json` for export/config policy.
+- Added extension background download path to avoid page-context download failures.
 
 ## Removal Log
 
