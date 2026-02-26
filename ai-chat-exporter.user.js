@@ -13,6 +13,7 @@
 // @match        https://gemini.google.com/*
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_download
 // ==/UserScript==
 
 (function () {
@@ -364,6 +365,28 @@
     },
 
     /**
+     * Makes a filename safe for Windows.
+     * @param {string} name Input filename.
+     * @returns {string} Windows-safe filename.
+     */
+    sanitizeWindowsFilename(name) {
+      let out = String(name || "chat-export")
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
+        .replace(/[. ]+$/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (!out) out = "chat-export";
+
+      // Windows reserved device names.
+      if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.test(out)) {
+        out = `_${out}`;
+      }
+
+      return out.slice(0, 180);
+    },
+
+    /**
      * Formats a Date object into a local time string with UTC offset.
      * @param {Date} d The Date object.
      * @returns {string} The formatted local time string.
@@ -408,12 +431,27 @@
      * @param {string} [mimeType='text/plain;charset=utf-8'] The MIME type.
      */
     downloadFile(filename, text, mimeType = "text/plain;charset=utf-8") {
+      const safeFilename = Utils.sanitizeWindowsFilename(filename);
       const blob = new Blob([text], { type: mimeType });
       const url = URL.createObjectURL(blob);
+      if (typeof GM_download === "function") {
+        GM_download({
+          url,
+          name: safeFilename,
+          saveAs: true,
+          onload: () => URL.revokeObjectURL(url),
+          onerror: () => URL.revokeObjectURL(url),
+        });
+        return;
+      }
+
       const a = document.createElement("a");
       a.href = url;
-      a.download = filename;
+      a.download = safeFilename;
+      a.style.display = "none";
+      document.body.appendChild(a);
       a.click();
+      a.remove();
       URL.revokeObjectURL(url);
     },
 

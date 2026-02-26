@@ -75,6 +75,21 @@ This version introduces significant enhancements focused on customization, outpu
 4.  A floating "⬇ Export MD" and "⬇ JSON" button will appear at the bottom right of the page.
 5.  Click the desired button to download your conversation.
 
+### Firefox + Windows setup (recommended)
+
+1.  Install **Firefox** and **Tampermonkey** from the Firefox add-ons store.
+2.  Install this userscript from `ai-chat-exporter.user.js` in your fork.
+3.  In Tampermonkey, keep download prompts enabled (save dialog) so exports can be named and saved cleanly.
+4.  Open a supported chat page and export using **Export MD** or **JSON**.
+5.  Filenames are normalized for Windows restrictions (invalid characters and reserved device names).
+
+### Fork-first workflow (no pull request)
+
+1.  Fork this repository into your own GitHub account.
+2.  Apply your changes in your fork.
+3.  Commit and push directly to your fork branch.
+4.  Install/update the userscript from your fork raw URL.
+
 ### via Greasy Fork
 
 - [Greasy Fork script](https://greasyfork.org/en/scripts/541051-chatgpt-claude-copilot-gemini-ai-chat-exporter-by-revivalstack)
