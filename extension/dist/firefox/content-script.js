@@ -455,25 +455,34 @@
       const safeFilename = Utils.sanitizeWindowsFilename(filename);
       const blob = new Blob([text], { type: mimeType });
       const url = URL.createObjectURL(blob);
+      const fallbackDownload = () => {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = safeFilename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      };
+
       if (typeof GM_download === "function") {
-        GM_download({
-          url,
-          name: safeFilename,
-          saveAs: true,
-          onload: () => URL.revokeObjectURL(url),
-          onerror: () => URL.revokeObjectURL(url),
-        });
-        return;
+        try {
+          GM_download({
+            url,
+            name: safeFilename,
+            saveAs: true,
+            onload: () => URL.revokeObjectURL(url),
+            onerror: () => fallbackDownload(),
+          });
+          return;
+        } catch (e) {
+          fallbackDownload();
+          return;
+        }
       }
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = safeFilename;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      fallbackDownload();
     },
 
     /**
