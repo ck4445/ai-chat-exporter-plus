@@ -11,9 +11,8 @@ Maintain Firefox + Windows-friendly export behavior and provide a clear setup gu
   - Core utility methods live in `Utils`.
   - Export flow calls `Utils.downloadFile(...)`.
 - `README.md`
-  - Lean setup documentation.
-  - Includes quick setup, fork workflow, troubleshooting, and restored legacy version notes (`v2.7.0`, `v2.6.0`, `v2.5.0`).
-  - Includes clickable links for fork, upstream, install URL, changelog, references, and license.
+  - Very basic setup documentation.
+  - Plain step-by-step install/use/troubleshooting/update instructions for non-technical users.
 
 ## Recent Changes
 
