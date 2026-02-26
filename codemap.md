@@ -31,6 +31,8 @@ Enforce a single export path: JSONL only, fixed filename `userdata.jsonl`, and m
 ## Recent Changes
 
 - Enforced JSONL-only export path.
+- Simplified JSONL payload to only:
+  - `{"messages":[{"role":"user|assistant","content":"..."}]}`
 - Fixed export filename to `userdata.jsonl`.
 - Added mandatory confirmation disclaimer before every export.
 - Removed Markdown export button and generic JSON export option.

@@ -5,7 +5,7 @@
     "format": "jsonl",
     "filename": "userdata.jsonl",
     "mimeType": "application/x-ndjson;charset=utf-8",
-    "lineSchema": "ai-chat-exporter-plus.v1"
+    "lineSchema": "{\"messages\":[{\"role\":\"user|assistant\",\"content\":\"string\"}]}"
   },
   "policy": {
     "requireDisclaimerBeforeExport": true,

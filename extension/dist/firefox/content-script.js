@@ -937,27 +937,13 @@
           return markdownContent;
         }
       };
-      const exportedAt = chatData.exportedAt.toISOString();
-      const records = chatData.messages.map((msg, index) => ({
-        schema: "ai-chat-exporter-plus.v1",
-        source: {
-          platform: chatData.author,
-          title: chatData.title,
-          tags: chatData.tags,
-          threadUrl: chatData.threadUrl,
-          exportedAt: exportedAt,
-          exporter: EXPORTER_VERSION,
-          messageCount: chatData.messageCount,
-        },
-        message: {
-          sequence: index + 1,
-          id: msg.id,
-          author: msg.author,
+      const payload = {
+        messages: chatData.messages.map((msg) => ({
+          role: msg.author === "ai" ? "assistant" : "user",
           content: processMessageContent(msg),
-        },
-      }));
-
-      const jsonlOutput = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
+        })),
+      };
+      const jsonlOutput = JSON.stringify(payload) + "\n";
       return { output: jsonlOutput, fileName: FIXED_EXPORT_FILENAME };
     },
 

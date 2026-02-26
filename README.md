@@ -48,7 +48,13 @@ If you click confirm and nothing downloads:
 
 ## Output schema
 
-One JSON object per line (`.jsonl`).
+One JSON object per line (`.jsonl`) in this exact shape:
+
+```json
+{"messages":[{"role":"user","content":"..."},{"role":"assistant","content":"..."}]}
+```
+
+No extra fields are included.
 
 Schema/config file:
 - `compliation.json`
